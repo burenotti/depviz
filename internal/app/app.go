@@ -52,38 +52,41 @@ func (a *App) GetDependencyGraph(ctx context.Context, packageName string) ([]mod
 	ctx2, cancel := context.WithCancel(ctx)
 	for i := 0; i < _defaultConcurrency; i++ {
 		go func(ctx context.Context) {
-			select {
-			case <-ctx.Done():
-				return
-			case task, ok := <-taskChan:
-				defer wg.Done()
-				if !ok {
+			for {
+				select {
+				case <-ctx.Done():
 					return
-				}
-				mv.Lock()
-				if _, has := visited[task.packageName]; has {
+				case task, ok := <-taskChan:
+					//defer wg.Done()
+					if !ok {
+						return
+					}
+					mv.Lock()
+					if _, has := visited[task.packageName]; has {
+						mv.Unlock()
+						return
+					} else {
+						visited[task.packageName] = struct{}{}
+					}
 					mv.Unlock()
-					return
-				} else {
-					visited[task.packageName] = struct{}{}
-				}
-				mv.Unlock()
 
-				deps, err := a.DepsProvider.FetchPackageDeps(ctx, task.packageName)
-				if errors.Is(err, context.Canceled) {
-					return
-				} else if err != nil {
-					panic(err)
-				}
-				wg.Add(len(deps))
-				m.Lock()
-				for _, dep := range deps {
-					result = append(result, models.Edge{From: task.packageName, To: dep})
-				}
-				m.Unlock()
+					deps, err := a.DepsProvider.FetchPackageDeps(ctx, task.packageName)
+					if errors.Is(err, context.Canceled) {
+						return
+					} else if err != nil {
+						panic(err)
+					}
+					wg.Add(len(deps))
+					m.Lock()
+					for _, dep := range deps {
+						result = append(result, models.Edge{From: task.packageName, To: dep})
+					}
+					m.Unlock()
 
-				for _, dep := range deps {
-					taskChan <- fetchTask{dep}
+					for _, dep := range deps {
+						taskChan <- fetchTask{dep}
+					}
+					wg.Done()
 				}
 			}
 		}(ctx2)
