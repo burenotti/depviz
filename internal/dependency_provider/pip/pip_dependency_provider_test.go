@@ -1,10 +1,10 @@
-package dep
+package pip
 
 import (
 	"bytes"
 	"context"
-	"depviz/internal/services/dep/test_utils"
-	"depviz/internal/services/dep_errors"
+	"depviz/internal/dependency_provider/dep_errors"
+	"depviz/internal/dependency_provider/pip/test_utils"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -72,7 +72,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		srv := httptest.NewServer(mux)
 		defer srv.Close()
 
-		d := Service{
+		d := DependencyProvider{
 			BaseURL: srv.URL,
 			Client:  &http.Client{},
 		}
@@ -94,7 +94,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		srv := httptest.NewServer(mux)
 		defer srv.Close()
 
-		d := Service{
+		d := DependencyProvider{
 			BaseURL: srv.URL,
 			Client:  &http.Client{},
 		}
@@ -116,7 +116,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		srv := httptest.NewServer(mux)
 		defer srv.Close()
 
-		d := Service{
+		d := DependencyProvider{
 			BaseURL: srv.URL,
 			Client:  &http.Client{},
 		}
@@ -138,7 +138,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		srv := httptest.NewServer(mux)
 		defer srv.Close()
 
-		d := Service{
+		d := DependencyProvider{
 			BaseURL: srv.URL,
 			Client:  &http.Client{},
 		}
@@ -160,7 +160,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		srv := httptest.NewServer(mux)
 		defer srv.Close()
 
-		d := Service{
+		d := DependencyProvider{
 			BaseURL: srv.URL,
 			Client:  &http.Client{},
 		}
@@ -193,7 +193,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		srv := httptest.NewServer(mux)
 		defer srv.Close()
 
-		d := Service{
+		d := DependencyProvider{
 			BaseURL: srv.URL,
 			Client:  &http.Client{},
 		}

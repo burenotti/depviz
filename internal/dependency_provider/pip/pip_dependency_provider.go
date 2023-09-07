@@ -1,8 +1,8 @@
-package dep
+package pip
 
 import (
 	"context"
-	"depviz/internal/services/dep_errors"
+	"depviz/internal/dependency_provider/dep_errors"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,19 +12,19 @@ import (
 	"strings"
 )
 
-type Service struct {
+type DependencyProvider struct {
 	BaseURL string
 	Client  *http.Client
 }
 
-func Default() *Service {
-	return &Service{
+func Default() *DependencyProvider {
+	return &DependencyProvider{
 		BaseURL: "https://pypi.python.org/pypi",
 		Client:  &http.Client{},
 	}
 }
 
-func (d *Service) fetch(ctx context.Context, packageName string) (io.ReadCloser, error) {
+func (d *DependencyProvider) fetch(ctx context.Context, packageName string) (io.ReadCloser, error) {
 	uri, err := url.JoinPath(d.BaseURL, packageName, "json")
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func parsePackageDeps(reader io.Reader) ([]string, error) {
 	return nil, fmt.Errorf("%w: invalid json", dep_errors.ErrFetch)
 }
 
-func (d *Service) FetchPackageDeps(ctx context.Context, packageName string) ([]string, error) {
+func (d *DependencyProvider) FetchPackageDeps(ctx context.Context, packageName string) ([]string, error) {
 	data, err := d.fetch(ctx, packageName)
 	if err != nil {
 		return nil, err

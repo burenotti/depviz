@@ -1,7 +1,7 @@
 package npm
 
 import (
-	"depviz/internal/services/dep_errors"
+	"depviz/internal/dependency_provider/dep_errors"
 	"github.com/stretchr/testify/assert"
 	"sort"
 	"testing"

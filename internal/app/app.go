@@ -2,10 +2,14 @@ package app
 
 import (
 	"context"
+	"depviz/internal/dependency_provider/npm"
+	"depviz/internal/dependency_provider/pip"
 	"depviz/internal/models"
+	"depviz/internal/serializer/dot"
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"sync"
 )
 
@@ -102,17 +106,24 @@ func (a *App) Run(ctx context.Context, packageName string, output io.Writer) err
 	return nil
 }
 
-//func (a *App) GetDependencyGraph(ctx context.Context, packageName string) []Edge {
-//	stack := []string{packageName}
-//	visited := map[string]struct{}{}
-//	for len(stack) > 0 {
-//		top := len(stack) - 1
-//		currentPackage := stack[top]
-//		stack = stack[:top]
-//		if _, ok := visited[currentPackage]; ok {
-//			continue
-//		}
-//
-//
-//	}
-//}
+func Run(ctx context.Context, cfg *Config) error {
+	if err := cfg.Validate(); err != nil {
+		return err
+	}
+	app := App{
+		DepsProvider: getProviderByName(cfg.PackageManager),
+		Serializer:   &dot.DotSerializer{},
+	}
+	return app.Run(ctx, cfg.PackageName, os.Stdout)
+}
+
+func getProviderByName(name string) DepsProvider {
+	switch name {
+	case "pip":
+		return pip.Default()
+	case "npm":
+		return npm.Default()
+	default:
+		panic("unknown provider type: " + name)
+	}
+}

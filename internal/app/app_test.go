@@ -3,10 +3,10 @@ package app
 import (
 	"bytes"
 	"context"
+	"depviz/internal/dependency_provider/pip"
+	"depviz/internal/dependency_provider/pip/test_utils"
 	"depviz/internal/models"
-	"depviz/internal/serializers/dot"
-	"depviz/internal/services/dep"
-	"depviz/internal/services/dep/test_utils"
+	"depviz/internal/serializer/dot"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -41,7 +41,7 @@ func TestApp_GetDependencyGraph(t *testing.T) {
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
-	t.Run("test fetching dep graph with sub dependencies", func(t *testing.T) {
+	t.Run("test fetching pip graph with sub dependencies", func(t *testing.T) {
 		expected := []models.Edge{
 			{"fastapi", "pydantic"},
 			{"fastapi", "starlette"},
@@ -52,7 +52,7 @@ func TestApp_GetDependencyGraph(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
-		d := &dep.Service{
+		d := &pip.DependencyProvider{
 			BaseURL: srv.URL,
 			Client:  &http.Client{},
 		}
@@ -100,7 +100,7 @@ func TestApp_Run(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
-		d := &dep.Service{
+		d := &pip.DependencyProvider{
 			BaseURL: srv.URL,
 			Client:  &http.Client{},
 		}
