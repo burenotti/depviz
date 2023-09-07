@@ -53,7 +53,7 @@ func parsePackageDeps(reader io.Reader) ([]string, error) {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			return nil, fmt.Errorf("%w: %s", dep_errors.ErrInvalidJson, err)
+			return nil, fmt.Errorf("%w: %s", dep_errors.ErrFetch, err)
 		}
 
 		tokenStr, ok := token.(string)
@@ -62,11 +62,11 @@ func parsePackageDeps(reader io.Reader) ([]string, error) {
 			if err == nil {
 				return deps, nil
 			} else {
-				return nil, fmt.Errorf("%w: %s", dep_errors.ErrInvalidJson, err)
+				return nil, fmt.Errorf("%w: %s", dep_errors.ErrFetch, err)
 			}
 		}
 	}
-	return nil, fmt.Errorf("%w: invalid json", dep_errors.ErrInvalidJson)
+	return nil, fmt.Errorf("%w: invalid json", dep_errors.ErrFetch)
 }
 
 func (d *Service) FetchPackageDeps(ctx context.Context, packageName string) ([]string, error) {

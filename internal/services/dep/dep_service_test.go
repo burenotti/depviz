@@ -45,7 +45,7 @@ func Test_parsePackageDeps(t *testing.T) {
 		reader := bytes.NewReader(data)
 
 		deps, err := parsePackageDeps(reader)
-		assert.ErrorIs(t, err, dep_errors.ErrInvalidJson)
+		assert.ErrorIs(t, err, dep_errors.ErrFetch)
 		assert.Empty(t, deps)
 	})
 
@@ -54,7 +54,7 @@ func Test_parsePackageDeps(t *testing.T) {
 		reader := bytes.NewReader(data)
 
 		deps, err := parsePackageDeps(reader)
-		assert.ErrorIs(t, err, dep_errors.ErrInvalidJson)
+		assert.ErrorIs(t, err, dep_errors.ErrFetch)
 		assert.Empty(t, deps)
 	})
 }
@@ -100,7 +100,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		}
 		deps, err := d.FetchPackageDeps(ctx, "requests")
 		assert.Empty(t, deps)
-		assert.ErrorIs(t, err, dep_errors.ErrInvalidJson)
+		assert.ErrorIs(t, err, dep_errors.ErrFetch)
 	})
 
 	t.Run("test fetching if server returns json with invalid schema", func(t *testing.T) {
@@ -122,7 +122,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		}
 		deps, err := d.FetchPackageDeps(ctx, "requests")
 		assert.Empty(t, deps)
-		assert.ErrorIs(t, err, dep_errors.ErrInvalidJson)
+		assert.ErrorIs(t, err, dep_errors.ErrFetch)
 	})
 
 	t.Run("test fetching if server returns json with invalid schema", func(t *testing.T) {
@@ -144,7 +144,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		}
 		deps, err := d.FetchPackageDeps(ctx, "requests")
 		assert.Empty(t, deps)
-		assert.ErrorIs(t, err, dep_errors.ErrInvalidJson)
+		assert.ErrorIs(t, err, dep_errors.ErrFetch)
 	})
 
 	t.Run("test fetching package with no dependencies", func(t *testing.T) {
