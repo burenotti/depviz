@@ -63,13 +63,42 @@ Or provide its output directly to the input of `dot` command like this:
 ```shell
 depviz -pip django | dot -Tsvg > out.svg
 ```
+
 This command saves dependency graph of django package to out.svg:
 ![Django dependency graph](imgs/out-django.svg)
 
 Another example with npm:
+
 ```shell
 depviz -pip vue | dot -Tsvg > out.svg
 ```
 
 After execution of the command this graph will be created:
 ![Vue dependency graph](imgs/out-vue.svg)
+
+## Building
+
+First of all clone the repository:
+
+```shell
+git clone https://github.com/burenotti/depviz
+```
+
+Then you have to options:
+
+1. Build natively
+2. Build docker image
+
+### Building natively
+
+Run `make build` to build depviz for all platforms.
+
+### Building docker image
+
+Run `make docker-build` to build image `burenotti/depviz`
+
+Then you can run it like this:
+
+```shell
+docker run -it --rm burenotti/depviz [here is options...]
+```
