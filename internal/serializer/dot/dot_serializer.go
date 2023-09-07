@@ -4,11 +4,8 @@ import (
 	"depviz/internal/models"
 	"fmt"
 	"io"
-	"regexp"
 	"sort"
 )
-
-var escapeRegex = regexp.MustCompile(`[^a-zA-Z0-9_]`)
 
 type DotSerializer struct {
 }
