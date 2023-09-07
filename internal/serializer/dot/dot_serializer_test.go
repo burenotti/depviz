@@ -15,9 +15,12 @@ func Test_DotSerializer_Serialize(t *testing.T) {
 			{"y", "z"},
 		}
 		expected := `digraph dependencies {
-	x -> y;
-	x -> z;
-	y -> z;
+	1 [label="x"];
+	2 [label="y"];
+	3 [label="z"];
+	1 -> 2;
+	1 -> 3;
+	2 -> 3;
 }`
 		s := DotSerializer{}
 		var buf bytes.Buffer

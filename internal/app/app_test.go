@@ -93,9 +93,13 @@ func TestApp_Run(t *testing.T) {
 
 	t.Run("test running app on valid data", func(t *testing.T) {
 		expected := `digraph dependencies {
-	fastapi -> starlette;
-	fastapi -> pydantic;
-	starlette -> asyncio;
+	1 [label="fastapi"];
+	2 [label="starlette"];
+	3 [label="pydantic"];
+	4 [label="asyncio"];
+	1 -> 2;
+	1 -> 3;
+	2 -> 4;
 }`
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
