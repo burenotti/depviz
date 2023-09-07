@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"depviz/internal/services/dep/test_utils"
+	"depviz/internal/services/dep_errors"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -44,7 +45,7 @@ func Test_parsePackageDeps(t *testing.T) {
 		reader := bytes.NewReader(data)
 
 		deps, err := parsePackageDeps(reader)
-		assert.ErrorIs(t, err, ErrInvalidJson)
+		assert.ErrorIs(t, err, dep_errors.ErrInvalidJson)
 		assert.Empty(t, deps)
 	})
 
@@ -53,7 +54,7 @@ func Test_parsePackageDeps(t *testing.T) {
 		reader := bytes.NewReader(data)
 
 		deps, err := parsePackageDeps(reader)
-		assert.ErrorIs(t, err, ErrInvalidJson)
+		assert.ErrorIs(t, err, dep_errors.ErrInvalidJson)
 		assert.Empty(t, deps)
 	})
 }
@@ -77,7 +78,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		}
 		deps, err := d.FetchPackageDeps(ctx, "requests")
 		assert.Empty(t, deps)
-		assert.ErrorIs(t, err, ErrPackageNotFound)
+		assert.ErrorIs(t, err, dep_errors.ErrPackageNotFound)
 	})
 
 	t.Run("test fetching if server returns invalid json", func(t *testing.T) {
@@ -99,7 +100,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		}
 		deps, err := d.FetchPackageDeps(ctx, "requests")
 		assert.Empty(t, deps)
-		assert.ErrorIs(t, err, ErrInvalidJson)
+		assert.ErrorIs(t, err, dep_errors.ErrInvalidJson)
 	})
 
 	t.Run("test fetching if server returns json with invalid schema", func(t *testing.T) {
@@ -121,7 +122,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		}
 		deps, err := d.FetchPackageDeps(ctx, "requests")
 		assert.Empty(t, deps)
-		assert.ErrorIs(t, err, ErrInvalidJson)
+		assert.ErrorIs(t, err, dep_errors.ErrInvalidJson)
 	})
 
 	t.Run("test fetching if server returns json with invalid schema", func(t *testing.T) {
@@ -143,7 +144,7 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		}
 		deps, err := d.FetchPackageDeps(ctx, "requests")
 		assert.Empty(t, deps)
-		assert.ErrorIs(t, err, ErrInvalidJson)
+		assert.ErrorIs(t, err, dep_errors.ErrInvalidJson)
 	})
 
 	t.Run("test fetching package with no dependencies", func(t *testing.T) {

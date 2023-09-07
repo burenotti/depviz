@@ -2,19 +2,14 @@ package dep
 
 import (
 	"context"
+	"depviz/internal/services/dep_errors"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
-)
-
-var (
-	ErrInvalidJson     = errors.New("invalid json")
-	ErrPackageNotFound = errors.New("package not found")
 )
 
 type Service struct {
@@ -44,7 +39,7 @@ func (d *Service) fetch(ctx context.Context, packageName string) (io.ReadCloser,
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode == 404 {
-		return nil, fmt.Errorf("%w: %s", ErrPackageNotFound, packageName)
+		return nil, fmt.Errorf("%w: %s", dep_errors.ErrPackageNotFound, packageName)
 	}
 
 	return resp.Body, nil
@@ -58,7 +53,7 @@ func parsePackageDeps(reader io.Reader) ([]string, error) {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			return nil, fmt.Errorf("%w: %s", ErrInvalidJson, err)
+			return nil, fmt.Errorf("%w: %s", dep_errors.ErrInvalidJson, err)
 		}
 
 		tokenStr, ok := token.(string)
@@ -67,11 +62,11 @@ func parsePackageDeps(reader io.Reader) ([]string, error) {
 			if err == nil {
 				return deps, nil
 			} else {
-				return nil, fmt.Errorf("%w: %s", ErrInvalidJson, err)
+				return nil, fmt.Errorf("%w: %s", dep_errors.ErrInvalidJson, err)
 			}
 		}
 	}
-	return nil, fmt.Errorf("%w: invalid json", ErrInvalidJson)
+	return nil, fmt.Errorf("%w: invalid json", dep_errors.ErrInvalidJson)
 }
 
 func (d *Service) FetchPackageDeps(ctx context.Context, packageName string) ([]string, error) {
