@@ -1,8 +1,8 @@
 build:
-	GOOS=darwin  GOARCH=arm64 go build -o ./build/depviz-darwin-arm64 ./cmd/depviz/main.go
-	GOOS=darwin  GOARCH=amd64 go build -o ./build/depviz-darwin-amd64 ./cmd/depviz/main.go
-	GOOS=linux   GOARCH=amd64 go build -o ./build/depviz-linux-amd64  ./cmd/depviz/main.go
-	GOOS=windows GOARCH=amd64 go build -o ./build/depviz-win-amd64    ./cmd/depviz/main.go
+	GOOS=darwin  GOARCH=arm64 go build -o ./bin/depviz-darwin-arm64 ./cmd/depviz/main.go
+	GOOS=darwin  GOARCH=amd64 go build -o ./bin/depviz-darwin-amd64 ./cmd/depviz/main.go
+	GOOS=linux   GOARCH=amd64 go build -o ./bin/depviz-linux-amd64  ./cmd/depviz/main.go
+	GOOS=windows GOARCH=amd64 go build -o ./bin/depviz-win-amd64    ./cmd/depviz/main.go
 
 test:
 	go test -race ./...

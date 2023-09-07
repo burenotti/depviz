@@ -1,7 +1,7 @@
 ### Go tools ###
 coverage.html
 coverage.out
-build/
+bin/
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,linux,macos,windows,goland+all,visualstudiocode,dotenv
