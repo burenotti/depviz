@@ -57,6 +57,9 @@ func parsePackageDeps(data []byte) ([]string, error) {
 	if err := json.Unmarshal(data, &schema); err != nil {
 		return nil, fmt.Errorf("%w: %s", dep_errors.ErrFetch, err)
 	}
+	if schema.Dependencies == nil {
+		return nil, fmt.Errorf("%w: invalid json schema", dep_errors.ErrFetch)
+	}
 	dependencies := schema.Dependencies
 
 	names := make([]string, 0, len(dependencies))
