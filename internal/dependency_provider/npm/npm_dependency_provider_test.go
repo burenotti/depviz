@@ -11,15 +11,10 @@ func TestParsePackageDeps(t *testing.T) {
 	t.Run("test can parse valid json", func(t *testing.T) {
 		data := []byte(`
 {
-	"analyzedAt": "2022-11-11T23:56:34.902Z",
-	"collected": {
-		"metadata": {
-			"name": "@vue/compiler-dom",
-			"dependencies": {
-				"@vue/shared": "3.2.45",
-				"@vue/compiler-core": "3.2.45"
-			}
-		}
+	"name": "@vue/compiler-dom",
+	"dependencies": {
+		"@vue/shared": "3.2.45",
+		"@vue/compiler-core": "3.2.45"
 	}
 }
 `)
@@ -35,13 +30,8 @@ func TestParsePackageDeps(t *testing.T) {
 	t.Run("test correctly parses packages with no dependencies", func(t *testing.T) {
 		data := []byte(`
 {
-	"analyzedAt": "2022-11-11T23:56:34.902Z",
-	"collected": {
-		"metadata": {
-			"name": "@vue/compiler-dom",
-			"dependencies": {}
-		}
-	}
+	"name": "@vue/compiler-dom",
+	"dependencies": {}
 }
 `)
 		deps, err := parsePackageDeps(data)
@@ -55,7 +45,7 @@ func TestParsePackageDeps(t *testing.T) {
 	})
 
 	t.Run("test parsing if json schema is invalid", func(t *testing.T) {
-		_, err := parsePackageDeps([]byte(`{"collected": 1}`))
+		_, err := parsePackageDeps([]byte(`{"dependencies": 1}`))
 		assert.ErrorIs(t, err, dep_errors.ErrFetch)
 	})
 }

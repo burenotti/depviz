@@ -18,13 +18,13 @@ type DependencyProvider struct {
 
 func Default() *DependencyProvider {
 	return &DependencyProvider{
-		BaseURL: "https://api.npms.io/v2",
+		BaseURL: "https://registry.npmjs.com/",
 		Client:  &http.Client{},
 	}
 }
 
 func (s *DependencyProvider) fetch(ctx context.Context, packageName string) ([]byte, error) {
-	uri, err := url.JoinPath(s.BaseURL, "package", url.PathEscape(packageName))
+	uri, err := url.JoinPath(s.BaseURL, url.PathEscape(packageName), "latest")
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", dep_errors.ErrFetch, err.Error())
 	}
@@ -51,16 +51,13 @@ func (s *DependencyProvider) fetch(ctx context.Context, packageName string) ([]b
 
 func parsePackageDeps(data []byte) ([]string, error) {
 	var schema struct {
-		Collected struct {
-			Metadata struct {
-				Dependencies map[string]string `json:"dependencies"`
-			} `json:"metadata"`
-		} `json:"collected"`
+		Dependencies map[string]string `json:"dependencies"`
 	}
+
 	if err := json.Unmarshal(data, &schema); err != nil {
 		return nil, fmt.Errorf("%w: %s", dep_errors.ErrFetch, err)
 	}
-	dependencies := schema.Collected.Metadata.Dependencies
+	dependencies := schema.Dependencies
 
 	names := make([]string, 0, len(dependencies))
 	for name := range dependencies {
