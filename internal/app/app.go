@@ -40,14 +40,26 @@ func New(provider DepsProvider, serializer Serializer) *App {
 }
 
 func (a *App) GetDependencyGraph(ctx context.Context, packageName string) ([]models.Edge, error) {
-	wg := &sync.WaitGroup{}
-	m := &sync.Mutex{}
-	mv := &sync.RWMutex{}
+
+	// tasksWg counts remaining tasks, not goroutines
+	tasksWg := &sync.WaitGroup{}
+
+	// graph with all package dependencies
 	var result []models.Edge
+	resMutex := &sync.Mutex{}
+
+	// A set of visited dependencies
 	visited := make(map[string]struct{})
+	visMutex := &sync.Mutex{}
+
+	// channel with fetching tasks
 	taskChan := make(chan fetchTask, _defaultConcurrency)
 
-	wg.Add(1)
+	// may contain first caught error
+	var firstErr error
+	var once sync.Once
+
+	tasksWg.Add(1)
 	taskChan <- fetchTask{packageName: packageName}
 	ctx2, cancel := context.WithCancel(ctx)
 	for i := 0; i < _defaultConcurrency; i++ {
@@ -57,44 +69,47 @@ func (a *App) GetDependencyGraph(ctx context.Context, packageName string) ([]mod
 				case <-ctx.Done():
 					return
 				case task, ok := <-taskChan:
-					//defer wg.Done()
 					if !ok {
 						return
 					}
-					mv.Lock()
-					if _, has := visited[task.packageName]; has {
-						mv.Unlock()
+					if ok := pushIfNotExist(visited, visMutex, task.packageName); !ok {
+						tasksWg.Done()
 						return
-					} else {
-						visited[task.packageName] = struct{}{}
 					}
-					mv.Unlock()
 
 					deps, err := a.DepsProvider.FetchPackageDeps(ctx, task.packageName)
-					if errors.Is(err, context.Canceled) {
+
+					if err != nil {
+						if errors.Is(err, context.Canceled) {
+							return
+						}
+
+						once.Do(func() {
+							firstErr = err
+						})
+						tasksWg.Done()
 						return
-					} else if err != nil {
-						panic(err)
 					}
-					wg.Add(len(deps))
-					m.Lock()
+					resMutex.Lock()
 					for _, dep := range deps {
 						result = append(result, models.Edge{From: task.packageName, To: dep})
 					}
-					m.Unlock()
+					resMutex.Unlock()
 
+					tasksWg.Add(len(deps))
 					for _, dep := range deps {
 						taskChan <- fetchTask{dep}
 					}
-					wg.Done()
+					tasksWg.Done()
 				}
 			}
 		}(ctx2)
 	}
-	wg.Wait()
-	cancel()
+
+	tasksWg.Wait()
 	close(taskChan)
-	return result, nil
+	cancel()
+	return result, firstErr
 }
 
 func (a *App) Run(ctx context.Context, packageName string, output io.Writer) error {
@@ -129,4 +144,12 @@ func getProviderByName(name string) DepsProvider {
 	default:
 		panic("unknown provider type: " + name)
 	}
+}
+
+func pushIfNotExist(set map[string]struct{}, mu *sync.Mutex, key string) bool {
+	mu.Lock()
+	defer mu.Unlock()
+	_, ok := set[key]
+	set[key] = struct{}{}
+	return !ok
 }

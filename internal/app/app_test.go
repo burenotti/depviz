@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"depviz/internal/dependency_provider/dep_errors"
 	"depviz/internal/dependency_provider/pip"
 	"depviz/internal/dependency_provider/pip/test_utils"
 	"depviz/internal/models"
@@ -88,6 +89,22 @@ func TestApp_Run(t *testing.T) {
 			_, _ = w.Write(test_utils.NewServerResponse())
 			w.WriteHeader(200)
 		})
+	mux.HandleFunc("/dep/json",
+		func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write(test_utils.NewServerResponse("has-not-existing-dep", "has-not-existing-dep-2"))
+			w.WriteHeader(200)
+		})
+	mux.HandleFunc("/has-not-existing-dep/json",
+		func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write(test_utils.NewServerResponse("not-existing-dep"))
+			w.WriteHeader(200)
+		})
+
+	mux.HandleFunc("/has-not-existing-dep-2/json",
+		func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write(test_utils.NewServerResponse("not-existing-dep"))
+			w.WriteHeader(200)
+		})
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
@@ -115,6 +132,37 @@ func TestApp_Run(t *testing.T) {
 		err := app.Run(ctx, "fastapi", buf)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, buf.String())
+	})
+	t.Run("test if some of dependencies do not exist", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+		defer cancel()
+
+		d := &pip.DependencyProvider{
+			BaseURL: srv.URL,
+			Client:  &http.Client{},
+		}
+		s := &dot.DotSerializer{}
+
+		buf := &bytes.Buffer{}
+		app := New(d, s)
+		err := app.Run(ctx, "dep", buf)
+		assert.ErrorIs(t, err, dep_errors.ErrPackageNotFound)
+	})
+
+	t.Run("test if root package does not exist", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		d := &pip.DependencyProvider{
+			BaseURL: srv.URL,
+			Client:  &http.Client{},
+		}
+		s := &dot.DotSerializer{}
+
+		buf := &bytes.Buffer{}
+		app := New(d, s)
+		err := app.Run(ctx, "not-existing-package", buf)
+		assert.ErrorIs(t, err, dep_errors.ErrPackageNotFound)
 	})
 }
 
