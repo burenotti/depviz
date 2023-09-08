@@ -27,17 +27,17 @@ func Default() *DependencyProvider {
 func (d *DependencyProvider) fetch(ctx context.Context, packageName string) (io.ReadCloser, error) {
 	uri, err := url.JoinPath(d.BaseURL, packageName, "json")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", dep_errors.ErrFetch, err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "GET", uri, http.NoBody)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", dep_errors.ErrFetch, err)
 	}
 
 	resp, err := d.Client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", dep_errors.ErrFetch, err)
 	} else if resp.StatusCode == 404 {
 		return nil, fmt.Errorf("%w: %s", dep_errors.ErrPackageNotFound, packageName)
 	}

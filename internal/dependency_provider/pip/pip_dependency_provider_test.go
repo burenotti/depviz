@@ -180,16 +180,6 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 				w.WriteHeader(200)
 
 			})
-		//mux.HandleFunc("/starlette/json",
-		//	func(w http.ResponseWriter, r *http.Request) {
-		//		_, _ = w.Write(makeSrvResponse("asyncio"))
-		//		w.WriteHeader(200)
-		//	})
-		//mux.HandleFunc("/pydantic/json",
-		//	func(w http.ResponseWriter, r *http.Request) {
-		//		_, _ = w.Write(makeSrvResponse())
-		//		w.WriteHeader(200)
-		//	})
 		srv := httptest.NewServer(mux)
 		defer srv.Close()
 
@@ -201,6 +191,31 @@ func TestDownloader_FetchPackageDeps(t *testing.T) {
 		sort.Strings(deps)
 		assert.Equal(t, []string{"pydantic", "starlette"}, deps)
 		assert.NoError(t, err)
+	})
+
+	t.Run("test fetching if server is unreachable", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		d := DependencyProvider{
+			BaseURL: "http://localhost",
+			Client:  &http.Client{},
+		}
+
+		_, err := d.FetchPackageDeps(ctx, "valid-dependencies")
+		assert.ErrorIs(t, err, dep_errors.ErrFetch)
+	})
+	t.Run("test if fetching url is invalid", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		d := DependencyProvider{
+			BaseURL: ":::",
+			Client:  &http.Client{},
+		}
+
+		_, err := d.FetchPackageDeps(ctx, "valid-dependencies")
+		assert.ErrorIs(t, err, dep_errors.ErrFetch)
 	})
 }
 
