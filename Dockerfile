@@ -4,7 +4,7 @@ COPY . /src
 
 WORKDIR /src
 
-RUN go build -o ./build/depviz ./cmd/depviz/main.go
+RUN go build -ldflags "-s -w" -o ./build/depviz ./cmd/depviz/main.go
 
 FROM ubuntu:20.04
 
