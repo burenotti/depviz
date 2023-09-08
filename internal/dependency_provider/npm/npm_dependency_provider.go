@@ -34,14 +34,14 @@ func (s *DependencyProvider) fetch(ctx context.Context, packageName string) ([]b
 	}
 
 	response, err := s.Client.Do(req)
-	defer func() {
-		_ = response.Body.Close()
-	}()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", dep_errors.ErrFetch, err.Error())
 	} else if response.StatusCode == http.StatusNotFound {
 		return nil, fmt.Errorf("%w: package %s does not exist", dep_errors.ErrPackageNotFound, packageName)
 	}
+	defer func() {
+		_ = response.Body.Close()
+	}()
 	result := &bytes.Buffer{}
 	if _, err := io.Copy(result, response.Body); err != nil {
 		return nil, err

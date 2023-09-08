@@ -37,7 +37,7 @@ func main() {
 }
 
 func exitWithMessage(message string) {
-	fmt.Println(message)
+	_, _ = fmt.Fprintln(os.Stderr, message)
 	flag.PrintDefaults()
 	os.Exit(1)
 }
