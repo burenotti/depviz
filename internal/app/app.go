@@ -41,9 +41,6 @@ func New(provider DepsProvider, serializer Serializer) *App {
 
 func (a *App) GetDependencyGraph(ctx context.Context, packageName string) ([]models.Edge, error) {
 
-	wg := &sync.WaitGroup{}
-	wg.Add(_defaultConcurrency)
-
 	// tasksWg counts remaining tasks, not goroutines
 	tasksWg := &sync.WaitGroup{}
 
@@ -58,8 +55,6 @@ func (a *App) GetDependencyGraph(ctx context.Context, packageName string) ([]mod
 	// channel with fetching tasks
 	taskChan := make(chan fetchTask, _defaultConcurrency)
 
-	errChan := make(chan error)
-
 	// may contain first caught error
 	var firstErr error
 	var once sync.Once
@@ -69,7 +64,6 @@ func (a *App) GetDependencyGraph(ctx context.Context, packageName string) ([]mod
 	ctx2, cancel := context.WithCancel(ctx)
 	for i := 0; i < _defaultConcurrency; i++ {
 		go func(ctx context.Context) {
-			defer wg.Done()
 			for {
 				select {
 				case <-ctx.Done():
@@ -86,15 +80,15 @@ func (a *App) GetDependencyGraph(ctx context.Context, packageName string) ([]mod
 					deps, err := a.DepsProvider.FetchPackageDeps(ctx, task.packageName)
 
 					if err != nil {
+						tasksWg.Done()
 						if errors.Is(err, context.Canceled) {
 							return
 						}
 
 						once.Do(func() {
-							errChan <- err
-							close(errChan)
+							firstErr = err
+							cancel()
 						})
-						tasksWg.Done()
 						return
 					}
 					resMutex.Lock()
@@ -113,22 +107,13 @@ func (a *App) GetDependencyGraph(ctx context.Context, packageName string) ([]mod
 		}(ctx2)
 	}
 
-	done := make(chan struct{})
-	go func() {
-		tasksWg.Wait()
-		close(done)
-	}()
-	select {
-	case err, ok := <-errChan:
-		if ok {
-			firstErr = err
-		}
-	case <-done:
-	}
+	tasksWg.Wait()
 	close(taskChan)
 	cancel()
-	wg.Wait()
-	return result, firstErr
+	if firstErr != nil {
+		return nil, firstErr
+	}
+	return result, nil
 }
 
 func (a *App) Run(ctx context.Context, packageName string, output io.Writer) error {
