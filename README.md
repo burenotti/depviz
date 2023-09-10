@@ -23,11 +23,11 @@ Here is the output:
 
 ```dot
 digraph dependencies {
+    1 [label = "requests"];
+    2 [label = "charset-normalizer"];
     3 [label = "idna"];
     4 [label = "urllib3"];
     5 [label = "certifi"];
-    1 [label = "requests"];
-    2 [label = "charset-normalizer"];
     1 -> 2;
     1 -> 3;
     1 -> 4;
@@ -44,9 +44,9 @@ Output:
 
 ```dot
 digraph dependencies {
-    3 [label = "js-tokens"];
-    1 [label = "react"];
-    2 [label = "loose-envify"];
+    1 [label="react"];
+    2 [label="loose-envify"];
+    3 [label="js-tokens"];
     1 -> 2;
     2 -> 3;
 }
